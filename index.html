@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>ESP32 Adventure Game</title>
+    <style>
+        body { margin: 0; background: #222; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; }
+        #game-container { position: relative; width: 800px; height: 600px; background: url('https://img.freepik.com/free-vector/pixel-art-grass-background_52683-120224.jpg'); background-size: cover; border: 4px solid #444; overflow: hidden; }
+        #player { position: absolute; width: 50px; height: 50px; transition: transform 0.1s; }
+        #ui { position: absolute; top: 10px; left: 10px; color: white; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px; }
+        .reset-flash { animation: flash 0.5s; }
+        @keyframes flash { from { background: white; } to { background: transparent; } }
+    </style>
+</head>
+<body>
+
+    <div id="ui">Mando ESP32: <span id="status">Esperando Teclas...</span></div>
+    
+    <div id="game-container">
+        <img id="player" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" alt="Jugador">
+    </div>
+
+<script>
+    const player = document.getElementById('player');
+    const status = document.getElementById('status');
+    const container = document.getElementById('game-container');
+
+    let x = 375, y = 275; // Posición inicial (centro)
+    let speed = 5;
+    const keys = {};
+
+    // Detectar cuando se presiona una tecla (desde tu ESP32)
+    window.addEventListener('keydown', (e) => {
+        keys[e.key.toLowerCase()] = true;
+        status.innerText = `Tecla: ${e.key.toUpperCase()}`;
+        
+        // Paradigma de Interfaz: Reset (Tecla ESC enviada por tu ESP32)
+        if(e.key === 'Escape') {
+            x = 375; y = 275;
+            container.classList.add('reset-flash');
+            setTimeout(() => container.classList.remove('reset-flash'), 500);
+        }
+    });
+
+    window.addEventListener('keyup', (e) => {
+        keys[e.key.toLowerCase()] = false;
+    });
+
+    function gameLoop() {
+        // Movimiento basado en el paradigma de coordenadas
+        if (keys['w'] && y > 0) y -= speed;
+        if (keys['s'] && y < 550) y += speed;
+        if (keys['a'] && x > 0) {
+            x -= speed;
+            player.style.transform = "scaleX(-1)"; // Voltear imagen a la izquierda
+        }
+        if (keys['d'] && x < 750) {
+            x += speed;
+            player.style.transform = "scaleX(1)"; // Voltear imagen a la derecha
+        }
+
+        // Aplicar posición
+        player.style.left = x + 'px';
+        player.style.top = y + 'px';
+
+        requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+</script>
+</body>
+</html>
